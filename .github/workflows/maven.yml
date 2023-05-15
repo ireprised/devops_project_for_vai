@@ -1,0 +1,35 @@
+name: Java Web App CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+
+    - name: Build with Maven
+      run: mvn clean package
+
+    - name: Start Tomcat
+      uses: helphi/http-server-action@v1
+      with:
+        port: 8080
+        root: target/ # assuming your WAR file is generated in the target/ directory
+        command: java -jar $HTTP_SERVER_FILE
+
+    - name: Wait for Tomcat to start up
+      run: sleep 10s # wait for 10 seconds to allow Tomcat to start up
+
+    - name: Run tests with Maven
+      run: mvn clean verify
